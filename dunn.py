@@ -94,6 +94,11 @@ def dunn(*args, **kwargs):
     True, False: bool_like
         Prints results on screen when True
         Default is display=True
+    False, True, "fileName": bool_string_like
+        Saves results onto csv file
+        Default is save=False
+        True -> labels will be used as filename
+        "myFile" -> myFile.csv will be created
     
     Returns
     -------
@@ -112,6 +117,18 @@ def dunn(*args, **kwargs):
     try:
         dunn = {}
         groups = copy.deepcopy(args[0]) #tuple of len k
+        if "labels" not in kwargs.keys():
+            kwargs["labels"] = []
+            for i in range(0, len(groups)):
+                protoL = str(i)
+                kwargs["labels"].append(protoL)
+        else:
+            if len(kwargs["labels"]) != len(groups):
+                raise ValueError("length of groups and length of labels must be the same")
+            else:
+                for label in kwargs["labels"]:
+                    if str(type(label)) != "<type 'str'>":
+                        raise ValueError("each label must be a string")
         key = 0
         metaG = []
         for i in range(0, len(groups)):
@@ -155,13 +172,25 @@ def dunn(*args, **kwargs):
                 else:
                     p = 2*(stats.norm.cdf(stat))
                 dunn[key] = {}
-                dunn[key]["ID"] = str(i)+"-"+str(j)
+                dunn[key]["ID"] = kwargs["labels"][i]+"-"+kwargs["labels"][j]
                 dunn[key]["statistic"] = stat
                 dunn[key]["p-value"] = p
                 key = key + 1
     except:
         dunn = {}
         groups = copy.deepcopy(args) #tuple of len k
+        if "labels" not in kwargs.keys():
+            kwargs["labels"] = []
+            for i in range(0, len(groups)):
+                protoL = str(i)
+                kwargs["labels"].append(protoL)
+        else:
+            if len(kwargs["labels"]) != len(groups):
+                raise ValueError("length of groups and length of labels must be the same")
+            else:
+                for label in kwargs["labels"]:
+                    if str(type(label)) != "<type 'str'>":
+                        raise ValueError("each label must be a string")
         key = 0
         metaG = []
         for i in range(0, len(groups)):
@@ -205,7 +234,7 @@ def dunn(*args, **kwargs):
                 else:
                     p = 2*(stats.norm.cdf(stat))
                 dunn[key] = {}
-                dunn[key]["ID"] = str(i)+"-"+str(j)
+                dunn[key]["ID"] = kwargs["labels"][i]+"-"+kwargs["labels"][j]
                 dunn[key]["statistic"] = stat
                 dunn[key]["p-value"] = p
                 key = key + 1
@@ -232,18 +261,13 @@ def dunn(*args, **kwargs):
             for key in keys:
                 i = ps.index(dunn[key]["p-value"]) + 1
                 q = dunn[key]["p-value"] * (m/(m+1-i))
-                if q >= pTop:
+                if q > pTop:
                     q = pTop
                 else:
                     pass
                 dunn[key]["q-value"] = q
         else:
-            raise ValueError("correction keyword must be 'none', 'bonferroni' or 'fdr'")
-    if "labels" not in kwargs.keys():
-        kwargs["labels"] = range(0, len(groups))
-    else:
-        if len(kwargs["labels"]) != len(groups):
-            raise ValueError("length of groups and length of labels must be the same")
+            raise ValueError("correction keyword must be 'bonferroni' or 'fdr'")
     if "display" not in kwargs.keys():
         kwargs["display"] = True
     if kwargs["display"] == True:
@@ -252,6 +276,8 @@ def dunn(*args, **kwargs):
         for label in kwargs["labels"]:
             lenLabels.append(len(label))
         maxLen = max(lenLabels)
+        if maxLen < 3:
+            maxLen = 4
         line1 = "  "
         for i in range(0, maxLen):
             line1 = line1 + " "
@@ -300,10 +326,6 @@ def dunn(*args, **kwargs):
         print line1
         print "\nDunn test H0 z-statistic\n"
         print ""
-        lenLabels = []
-        for label in kwargs["labels"]:
-            lenLabels.append(len(label))
-        maxLen = max(lenLabels)
         line1 = "  "
         for i in range(0, maxLen):
             line1 = line1 + " "
@@ -357,14 +379,68 @@ def dunn(*args, **kwargs):
             line1 = line1 + variable
         print line1
         print "\nAdjustment method for p-value:", kwargs["correction"], "\n"
+    if "save" in kwargs.keys():       
+        if kwargs["save"] == True:
+            fileName = ""
+            for label in kwargs["labels"]:
+                fileName = fileName + str(label)
+            fileName = fileName + ".csv"
+        elif str(type(kwargs["save"])) == "<type 'str'>":
+            fileName = kwargs["save"]
+            if fileName[-4:] != ".csv":
+                fileName = fileName + ".csv"
+        else:
+            raise ValueError("save arg must be either True, or string")
+        op = open(fileName, 'w')
+        labels = kwargs["labels"]
+        line1 = "statistic,"
+        for label in labels[1:]:
+            line1 = line1 + label + ","
+        line1 = line1[:-1] + "\n"
+        op.write(line1)
+        k = 0
+        for i in range(0, len(groups)-1):
+            line = labels[i] + ","
+            if i != 0:
+                for blank in range(0, i):
+                    line = line + ","
+            for j in range(i+1, len(groups)):
+                line = line + str(dunn[k]["statistic"]) + ","
+                k = k + 1
+            line = line[:-1] + "\n"
+            op.write(line)    
+        op.write("\n")
+        line1 = "p-value,"
+        for label in labels[1:]:
+            line1 = line1 + label + ","
+        line1 = line1[:-1] + "\n"
+        op.write(line1)
+        k = 0
+        for i in range(0, len(groups)-1):
+            line = labels[i] + ","
+            if i != 0:
+                for blank in range(0, i):
+                    line = line + ","
+            for j in range(i+1, len(groups)):
+                if kwargs["correction"] == "none":
+                    line = line + str(dunn[k]["p-value"]) + ","
+                else:
+                    line = line + str(dunn[k]["q-value"]) + ","
+                k = k + 1
+            line = line[:-1] + "\n"
+            op.write(line)    
+        op.close()               
     return dunn
 
 #==============================================================================
-# a = [0.28551035, 0.338524035, 0.08831321, 0.205930807, 0.363240102]
-# b = [0.52173913, 0.763358779, 0.32546786, 0.425305688, 0.378071834]
+# a = [0.28551035, 0.338524035, 0.088631321, 0.205930807, 0.363240102]
+# b = [0.52173913, 0.763358779, 0.325436786, 0.425305688, 0.378071834]
 # c = [0.98911968, 1.192718142, 0.788288288, 0.549176236, 0.544588155]
-# d = [1.26705653, 1.625320787, 1.266108976, 1.154187629, 1.268498943, 1.069518717]
-# e = [1.25697569, 1.26589756, 1.2378914561, 0.954612564, 2.365415457]
-# 
-# f = dunn(a,b,c,d,e, correction="fdr", labels=("a1", "b34d", "con", "das", "er56t"))
+# d = [1.26705653, 1.625320787, 1.266108976, 1.154187629, 1.268489431]
+# e = [1.25697569, 1.265897356, 1.237814561, 0.954612564, 2.365415457]
+#
+# groups = a,b,c,d,e
+#
+# f = dunn(a,b,c,d,e, correction="fdr", labels=("a1", "b2", "3n", "das", "5t"))
+# g = dunn(groups, correction="fdr", labels=("a1", "b34d", "con", "das", "5t"))
 #==============================================================================
