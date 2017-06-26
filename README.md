@@ -1,2 +1,6 @@
 # dunn
-Performs a post hoc Dunn's test for stochastic dominance
+Performs a two-tailed Dunn's test for stochastic dominance.
+
+Dunn’s test (1964) tests for stochastic dominance and reports the results
+among multiple pairwise comparisons after a rejected null hypothesis for 
+Kruskal-Wallis test for stochastic dominance among k groups.
