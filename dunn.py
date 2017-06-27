@@ -103,7 +103,7 @@ def dunn(*args, **kwargs):
     Returns
     -------
     dunn: hash_like
-        Dunn's multiple pairwaise test statistics, p-values, and corrected alphas
+        Dunn's multiple pairwaise test statistics, p-values, and q-values (corrections)
 
     References
     ----------
