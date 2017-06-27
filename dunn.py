@@ -75,14 +75,14 @@ def dunn(*args, **kwargs):
     Performs a two-tailed Dunn's test for stochastic dominance.
 
     Dunn’s test (1964) tests for stochastic dominance and reports the results
-    among multiple pairwise comparisons after a rejected null hypothesis for 
+    among multiple pairwise comparisons after a rejected null hypothesis for a 
     Kruskal-Wallis test for stochastic dominance among k groups.
 
     Parameters
     ----------
     sample1, sample2, ... : array_like
         The sample data, possibly with different lengths
-    "none", "bf", "fdr": string_like
+    "none", "fdr", ... : string_like
         Type of correction to use.
         Default is correction="none",
         "bonferroni" -> bonferroni correction,
