@@ -55,7 +55,7 @@ Dunn test H0 z-statistic
 
 Adjustment method for p-value: fdr
 
->>> f
+>>> g
 {0: {'ID': 'a-b',
   'p-value': 0.32303584413413144,
   'q-value': 0.35892871570459051,
