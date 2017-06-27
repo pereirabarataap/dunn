@@ -129,6 +129,17 @@ def dunn(*args, **kwargs):
                 for label in kwargs["labels"]:
                     if str(type(label)) != "<type 'str'>":
                         raise ValueError("each label must be a string")
+        for i in range(0, len(groups)):
+            group = groups[i]
+            while group.count(None) > 0 :
+                group.remove(None)
+            while group.count(np.nan) > 0 :
+                group.remove(np.nan)
+            if len(group) < 5:
+                print Warning("WARNING: at least one group has fewer than 5 proper elements")
+                print kwargs["labels"][i], group
+            if len(group) == 0:
+                raise ValueError("at least one group has no proper values")
         key = 0
         metaG = []
         for i in range(0, len(groups)):
@@ -191,6 +202,17 @@ def dunn(*args, **kwargs):
                 for label in kwargs["labels"]:
                     if str(type(label)) != "<type 'str'>":
                         raise ValueError("each label must be a string")
+        for i in range(0, len(groups)):
+            group = groups[i]
+            while group.count(None) > 0 :
+                group.remove(None)
+            while group.count(np.nan) > 0 :
+                group.remove(np.nan)
+            if len(group) < 5:
+                print Warning("WARNING: at least one group has fewer than 5 proper elements")
+                print kwargs["labels"][i], group
+            if len(group) == 0:
+                raise ValueError("at least one group has no proper values")
         key = 0
         metaG = []
         for i in range(0, len(groups)):
