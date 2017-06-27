@@ -34,7 +34,11 @@ Dunn test H0 z-statistic
 Adjustment method for p-value: none
 
 >>> groups = a,b,c,d,e
->>> g = dunn(groups, correction="fdr", labels=("a", "b", "c", "d", "e"), display=True, save=False)
+>>> g = dunn(groups,
+             correction="fdr",
+             labels=("a", "b", "c", "d", "e"),
+             display=True,
+             save=False)
 
       b       c       d       e       
    a  -0.9882 -2.1054 -3.8241 -3.3944 a
