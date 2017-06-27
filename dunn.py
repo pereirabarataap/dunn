@@ -112,8 +112,100 @@ def dunn(*args, **kwargs):
             Journal of the American Statistical Association, 56(293):52–64.
     .. [3]  Dunn, O. J. (1964). Multiple comparisons using rank sums.
             Technometrics, 6(3):241–252.
-
-    """  
+    
+    Examples
+    --------
+    >>> a = [0.28551035, 0.338524035, 0.088631321, 0.205930807, 0.363240102]
+    >>> b = [0.52173913, 0.763358779, 0.325436786, 0.425305688, 0.378071834]
+    >>> c = [0.98911968, 1.192718142, 0.788288288, 0.549176236, 0.544588155]
+    >>> d = [1.26705653, 1.625320787, 1.266108976, 1.154187629, 1.268489431]
+    >>> e = [1.25697569, 1.265897356, 1.237814561, 0.954612564, 2.365415457]
+    >>> f = dunn(a,b,c,d,e)
+    
+          1       2       3       4       
+       0  -0.9882 -2.1054 -3.8241 -3.3944 0
+       1  -       -1.1171 -2.8358 -2.4061 1
+       2  -       -       -1.7187 -1.2890 2
+       3  -       -       -       0.42967 3
+          1       2       3       4       
+    
+    Dunn test H0 z-statistic
+    
+    
+          1       2       3       4       
+       0  0.32304 0.03526 0.00013 0.00069 0
+       1  -       0.26393 0.00457 0.01612 1
+       2  -       -       0.08567 0.19740 2
+       3  -       -       -       0.66744 3
+          1       2       3       4       
+    
+    Adjustment method for p-value: none
+    
+    >>> groups = a,b,c,d,e
+    >>> g = dunn(groups,correction="fdr",labels=("a","b","c","d","e"),display=True,save=False)
+    
+          b       c       d       e       
+       a  -0.9882 -2.1054 -3.8241 -3.3944 a
+       b  -       -1.1171 -2.8358 -2.4061 b
+       c  -       -       -1.7187 -1.2890 c
+       d  -       -       -       0.42967 d
+          b       c       d       e       
+    
+    Dunn test H0 z-statistic
+    
+    
+          b       c       d       e       
+       a  0.35893 0.07052 0.00131 0.00344 a
+       b  -       0.32992 0.01524 0.04030 b
+       c  -       -       0.14279 0.28199 c
+       d  -       -       -       0.66744 d
+          b       c       d       e       
+    
+    Adjustment method for p-value: fdr
+    
+    >>> g
+    {0: {'ID': 'a-b',
+      'p-value': 0.32303584413413144,
+      'q-value': 0.35892871570459051,
+      'statistic': -0.98823852617441732},
+     1: {'ID': 'a-c',
+      'p-value': 0.035258440790219898,
+      'q-value': 0.070516881580439797,
+      'statistic': -2.1053777296759324},
+     2: {'ID': 'a-d',
+      'p-value': 0.00013127544861251964,
+      'q-value': 0.0013127544861251965,
+      'statistic': -3.8240534273705715},
+     3: {'ID': 'a-e',
+      'p-value': 0.0006878304609215692,
+      'q-value': 0.0034391523046078459,
+      'statistic': -3.3943845029469117},
+     4: {'ID': 'b-c',
+      'p-value': 0.26393481049044942,
+      'q-value': 0.32991851311306175,
+      'statistic': -1.1171392035015151},
+     5: {'ID': 'b-d',
+      'p-value': 0.0045708928878404912,
+      'q-value': 0.015236309626134972,
+      'statistic': -2.8358149011961538},
+     6: {'ID': 'b-e',
+      'p-value': 0.016121821274057219,
+      'q-value': 0.040304553185143047,
+      'statistic': -2.4061459767724944},
+     7: {'ID': 'c-d',
+      'p-value': 0.085673439552316863,
+      'q-value': 0.14278906592052812,
+      'statistic': -1.7186756976946389},
+     8: {'ID': 'c-e',
+      'p-value': 0.19739573184449921,
+      'q-value': 0.28199390263499891,
+      'statistic': -1.2890067732709791},
+     9: {'ID': 'd-e',
+      'p-value': 0.66743649170988251,
+      'q-value': 0.66743649170988251,
+      'statistic': 0.42966892442365973}}
+     
+     """  
     try:
         dunn = {}
         groups = copy.deepcopy(args[0]) #tuple of len k
@@ -401,68 +493,56 @@ def dunn(*args, **kwargs):
             line1 = line1 + variable
         print line1
         print "\nAdjustment method for p-value:", kwargs["correction"], "\n"
-    if "save" in kwargs.keys():       
-        if kwargs["save"] == True:
-            fileName = ""
-            for label in kwargs["labels"]:
-                fileName = fileName + str(label)
-            fileName = fileName + ".csv"
-        elif str(type(kwargs["save"])) == "<type 'str'>":
-            fileName = kwargs["save"]
-            if fileName[-4:] != ".csv":
+    if "save" in kwargs.keys():
+        if kwargs["save"] != False:    
+            if kwargs["save"] == True:
+                fileName = ""
+                for label in kwargs["labels"]:
+                    fileName = fileName + str(label)
                 fileName = fileName + ".csv"
-        else:
-            raise ValueError("save arg must be either True, or string")
-        op = open(fileName, 'w')
-        labels = kwargs["labels"]
-        line1 = "statistic,"
-        for label in labels[1:]:
-            line1 = line1 + label + ","
-        line1 = line1[:-1] + "\n"
-        op.write(line1)
-        k = 0
-        for i in range(0, len(groups)-1):
-            line = labels[i] + ","
-            if i != 0:
-                for blank in range(0, i):
-                    line = line + ","
-            for j in range(i+1, len(groups)):
-                line = line + str(dunn[k]["statistic"]) + ","
-                k = k + 1
-            line = line[:-1] + "\n"
-            op.write(line)    
-        op.write("\n")
-        line1 = "p-value,"
-        for label in labels[1:]:
-            line1 = line1 + label + ","
-        line1 = line1[:-1] + "\n"
-        op.write(line1)
-        k = 0
-        for i in range(0, len(groups)-1):
-            line = labels[i] + ","
-            if i != 0:
-                for blank in range(0, i):
-                    line = line + ","
-            for j in range(i+1, len(groups)):
-                if kwargs["correction"] == "none":
-                    line = line + str(dunn[k]["p-value"]) + ","
-                else:
-                    line = line + str(dunn[k]["q-value"]) + ","
-                k = k + 1
-            line = line[:-1] + "\n"
-            op.write(line)    
-        op.close()               
+            elif str(type(kwargs["save"])) == "<type 'str'>":
+                fileName = kwargs["save"]
+                if fileName[-4:] != ".csv":
+                    fileName = fileName + ".csv"
+            else:
+                raise ValueError("save arg must be either True, or string")
+            op = open(fileName, 'w')
+            labels = kwargs["labels"]
+            line1 = "statistic,"
+            for label in labels[1:]:
+                line1 = line1 + label + ","
+            line1 = line1[:-1] + "\n"
+            op.write(line1)
+            k = 0
+            for i in range(0, len(groups)-1):
+                line = labels[i] + ","
+                if i != 0:
+                    for blank in range(0, i):
+                        line = line + ","
+                for j in range(i+1, len(groups)):
+                    line = line + str(dunn[k]["statistic"]) + ","
+                    k = k + 1
+                line = line[:-1] + "\n"
+                op.write(line)    
+            op.write("\n")
+            line1 = "p-value,"
+            for label in labels[1:]:
+                line1 = line1 + label + ","
+            line1 = line1[:-1] + "\n"
+            op.write(line1)
+            k = 0
+            for i in range(0, len(groups)-1):
+                line = labels[i] + ","
+                if i != 0:
+                    for blank in range(0, i):
+                        line = line + ","
+                for j in range(i+1, len(groups)):
+                    if kwargs["correction"] == "none":
+                        line = line + str(dunn[k]["p-value"]) + ","
+                    else:
+                        line = line + str(dunn[k]["q-value"]) + ","
+                    k = k + 1
+                line = line[:-1] + "\n"
+                op.write(line)    
+            op.close()               
     return dunn
-
-#==============================================================================
-# a = [0.28551035, 0.338524035, 0.088631321, 0.205930807, 0.363240102]
-# b = [0.52173913, 0.763358779, 0.325436786, 0.425305688, 0.378071834]
-# c = [0.98911968, 1.192718142, 0.788288288, 0.549176236, 0.544588155]
-# d = [1.26705653, 1.625320787, 1.266108976, 1.154187629, 1.268489431]
-# e = [1.25697569, 1.265897356, 1.237814561, 0.954612564, 2.365415457]
-#
-# groups = a,b,c,d,e
-#
-# f = dunn(a,b,c,d,e, correction="fdr", labels=("a1", "b2", "3n", "das", "5t"))
-# g = dunn(groups, correction="fdr", labels=("a1", "b34d", "con", "das", "5t"))
-#==============================================================================
