@@ -498,8 +498,8 @@ def dunn(*args, **kwargs):
             if kwargs["save"] == True:
                 fileName = ""
                 for label in kwargs["labels"]:
-                    fileName = fileName + str(label)
-                fileName = fileName + ".csv"
+                    fileName = fileName + str(label) + "_vs_"
+                fileName = fileName[:-4] + ".csv"
             elif str(type(kwargs["save"])) == "<type 'str'>":
                 fileName = kwargs["save"]
                 if fileName[-4:] != ".csv":
