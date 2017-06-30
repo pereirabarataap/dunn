@@ -206,152 +206,80 @@ def dunn(*args, **kwargs):
       'statistic': 0.42966892442365973}}
      
      """  
-    try:
-        dunn = {}
-        groups = copy.deepcopy(args[0]) #tuple of len k
-        if "labels" not in kwargs.keys():
-            kwargs["labels"] = []
-            for i in range(0, len(groups)):
-                protoL = str(i)
-                kwargs["labels"].append(protoL)
+    dunn = {}
+    groups = copy.deepcopy(args) #tuple of len k
+    if str(type(groups[0][0])) == "<type 'list'>" or str(type(groups[0][0])) == "<type 'tuple'>":
+        groups = groups[0]
+    if "labels" not in kwargs.keys():
+        kwargs["labels"] = []
+        for i in range(0, len(groups)):
+            protoL = str(i)
+            kwargs["labels"].append(protoL)
+    else:
+        if len(kwargs["labels"]) != len(groups):
+            raise ValueError("length of groups and length of labels must be the same")
         else:
-            if len(kwargs["labels"]) != len(groups):
-                raise ValueError("length of groups and length of labels must be the same")
-            else:
-                for label in kwargs["labels"]:
-                    if str(type(label)) != "<type 'str'>":
-                        raise ValueError("each label must be a string")
-        for i in range(0, len(groups)):
-            group = groups[i]
-            while group.count(None) > 0 :
-                group.remove(None)
-            while group.count(np.nan) > 0 :
-                group.remove(np.nan)
-            if len(group) < 5:
-                print Warning("WARNING: at least one group has fewer than 5 proper elements")
-                print kwargs["labels"][i], group
-            if len(group) == 0:
-                raise ValueError("at least one group has no proper values")
-        key = 0
-        metaG = []
-        for i in range(0, len(groups)):
-            metaG = metaG + groups[i]
-        metaGR = makeRanks(metaG)[0]
-        n = len(metaGR)
-        ties = 0.0
-        uniqueR = list(set(metaGR))
-        for elem in uniqueR:
-            if metaGR.count(elem) > 1:
-                ties = ties + (metaGR.count(elem)**3 - metaGR.count(elem))
-            else:
-                pass
-        for i in range(0, len(groups)-1): #for every group in groups, excluding last
-            grp1 = list(groups[i])
-            grp1.sort()
-            n1 = float(len(grp1))
-            ranks1 = []
-            for k1 in range(0, len(grp1)):
-                point1 = grp1[k1]
-                idx1 = metaG.index(point1)
-                rank1 = metaGR[idx1]
-                ranks1.append(rank1)   
-            meanR1 = np.mean(ranks1)
-            for j in range(i+1, len(groups)): #for every group following grp1
-                grp2 = list(groups[j])
-                grp2.sort()
-                n2 = float(len(grp2))
-                ranks2 = []
-                for k2 in range(0, len(grp2)):
-                    point2 = grp2[k2]
-                    idx2 = metaG.index(point2)
-                    rank2 = metaGR[idx2]
-                    ranks2.append(rank2)
-                meanR2 = np.mean(ranks2)
-                y = meanR1 - meanR2
-                g = ((((n*(n+1))/12.0) - (ties/(12.0*(n-1)))) * (1.0/n1 + 1.0/n2))**0.5
-                stat = y/g
-                if stats.norm.cdf(stat) > 0.5:
-                    p = 2*(1 - stats.norm.cdf(stat))
-                else:
-                    p = 2*(stats.norm.cdf(stat))
-                dunn[key] = {}
-                dunn[key]["ID"] = kwargs["labels"][i]+"-"+kwargs["labels"][j]
-                dunn[key]["statistic"] = stat
-                dunn[key]["p-value"] = p
-                key = key + 1
-    except:
-        dunn = {}
-        groups = copy.deepcopy(args) #tuple of len k
-        if "labels" not in kwargs.keys():
-            kwargs["labels"] = []
-            for i in range(0, len(groups)):
-                protoL = str(i)
-                kwargs["labels"].append(protoL)
+            for label in kwargs["labels"]:
+                if str(type(label)) != "<type 'str'>":
+                    raise ValueError("each label must be a string")
+    for i in range(0, len(groups)):
+        group = groups[i]
+        while group.count(None) > 0 :
+            group.remove(None)
+        while group.count(np.nan) > 0 :
+            group.remove(np.nan)
+        if len(group) < 5:
+            print Warning("WARNING: at least one group has fewer than 5 proper elements")
+            print kwargs["labels"][i], group
+        if len(group) == 0:
+            raise ValueError("at least one group has no proper values")
+    key = 0
+    metaG = []
+    for i in range(0, len(groups)):
+        metaG = metaG + groups[i]
+    metaGR = makeRanks(metaG)[0]
+    n = len(metaGR)
+    ties = 0.0
+    uniqueR = list(set(metaGR))
+    for elem in uniqueR:
+        if metaGR.count(elem) > 1:
+            ties = ties + (metaGR.count(elem)**3 - metaGR.count(elem))
         else:
-            if len(kwargs["labels"]) != len(groups):
-                raise ValueError("length of groups and length of labels must be the same")
+            pass
+    for i in range(0, len(groups)-1): #for every group in groups, excluding last
+        grp1 = list(groups[i])
+        grp1.sort()
+        n1 = float(len(grp1))
+        ranks1 = []
+        for k1 in range(0, len(grp1)):
+            point1 = grp1[k1]
+            idx1 = metaG.index(point1)
+            rank1 = metaGR[idx1]
+            ranks1.append(rank1)   
+        meanR1 = np.mean(ranks1)
+        for j in range(i+1, len(groups)): #for every group following grp1
+            grp2 = list(groups[j])
+            grp2.sort()
+            n2 = float(len(grp2))
+            ranks2 = []
+            for k2 in range(0, len(grp2)):
+                point2 = grp2[k2]
+                idx2 = metaG.index(point2)
+                rank2 = metaGR[idx2]
+                ranks2.append(rank2)
+            meanR2 = np.mean(ranks2)
+            y = meanR1 - meanR2
+            g = ((((n*(n+1))/12.0) - (ties/(12.0*(n-1)))) * (1.0/n1 + 1.0/n2))**0.5
+            stat = y/g
+            if stats.norm.cdf(stat) > 0.5:
+                p = 2*(1 - stats.norm.cdf(stat))
             else:
-                for label in kwargs["labels"]:
-                    if str(type(label)) != "<type 'str'>":
-                        raise ValueError("each label must be a string")
-        for i in range(0, len(groups)):
-            group = groups[i]
-            while group.count(None) > 0 :
-                group.remove(None)
-            while group.count(np.nan) > 0 :
-                group.remove(np.nan)
-            if len(group) < 5:
-                print Warning("WARNING: at least one group has fewer than 5 proper elements")
-                print kwargs["labels"][i], group
-            if len(group) == 0:
-                raise ValueError("at least one group has no proper values")
-        key = 0
-        metaG = []
-        for i in range(0, len(groups)):
-            metaG = metaG + groups[i]
-        metaGR = makeRanks(metaG)[0]
-        n = len(metaGR)
-        ties = 0.0
-        uniqueR = list(set(metaGR))
-        for elem in uniqueR:
-            if metaGR.count(elem) > 1:
-                ties = ties + (metaGR.count(elem)**3 - metaGR.count(elem))
-            else:
-                pass
-        for i in range(0, len(groups)-1): #for every group in groups, excluding last
-            grp1 = list(groups[i])
-            grp1.sort()
-            n1 = float(len(grp1))
-            ranks1 = []
-            for k1 in range(0, len(grp1)):
-                point1 = grp1[k1]
-                idx1 = metaG.index(point1)
-                rank1 = metaGR[idx1]
-                ranks1.append(rank1)   
-            meanR1 = np.mean(ranks1)
-            for j in range(i+1, len(groups)): #for every group following grp1
-                grp2 = list(groups[j])
-                grp2.sort()
-                n2 = float(len(grp2))
-                ranks2 = []
-                for k2 in range(0, len(grp2)):
-                    point2 = grp2[k2]
-                    idx2 = metaG.index(point2)
-                    rank2 = metaGR[idx2]
-                    ranks2.append(rank2)
-                meanR2 = np.mean(ranks2)
-                y = meanR1 - meanR2
-                g = ((((n*(n+1))/12.0) - (ties/(12.0*(n-1)))) * (1.0/n1 + 1.0/n2))**0.5
-                stat = y/g
-                if stats.norm.cdf(stat) > 0.5:
-                    p = 2*(1 - stats.norm.cdf(stat)) #two-tailed
-                else:
-                    p = 2*(stats.norm.cdf(stat))
-                dunn[key] = {}
-                dunn[key]["ID"] = kwargs["labels"][i]+"-"+kwargs["labels"][j]
-                dunn[key]["statistic"] = stat
-                dunn[key]["p-value"] = p
-                key = key + 1
+                p = 2*(stats.norm.cdf(stat))
+            dunn[key] = {}
+            dunn[key]["ID"] = kwargs["labels"][i]+"-"+kwargs["labels"][j]
+            dunn[key]["statistic"] = stat
+            dunn[key]["p-value"] = p
+            key = key + 1
     if "correction" not in kwargs.keys():
         kwargs["correction"] = "none"  
     if kwargs["correction"] != "none":
